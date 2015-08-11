@@ -21,13 +21,7 @@
       - shell:
           | 
             echo building the stuff
-            gradle build
     publishers:
-      - violations:
-          findbugs:
-            pattern: build/reports/findbugs/*.xml
-      - junit:
-          results: build/test-results/*.xml
       - trigger:
           project: api-example-{branch}-integration
           threshold: SUCCESS
@@ -51,11 +45,6 @@
     builders:
       - shell: echo running integration tests successfully
     publishers:
-      - violations:
-          findbugs:
-            pattern: build/reports/findbugs/*.xml
-      - junit:
-          results: build/test-results/*.xml
       - trigger:
           project: api-example-{branch}-deploy
           threshold: SUCCESS
@@ -68,11 +57,6 @@
     disabled: false
     quiet-period: 5
     retry-count: 0
-    logrotate:
-      daysToKeep: 3
-      numToKeep: 20
-      artifactDaysToKeep: -1
-      artifactNumToKeep: -1
     scm:
       - workspace:
           parent-job: api-example-{branch}-integration
