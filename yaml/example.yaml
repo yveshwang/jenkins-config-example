@@ -76,7 +76,7 @@
     name: release
     branch:
         - master
-       # - 3.0-prep
+        - yves
        # - 3.0-shop
     jobs: 
         - api-example-{branch}-deploy
