@@ -1,0 +1,107 @@
+# author: Yves Hwang
+# date: 11-08-2015
+
+- job-template:
+    name: 'api-example-{branch}-build'
+    project-type: freestyle
+    defaults: global
+    description: 'Builds and runs unit tests. (Gradle build). Config in jenkins-config-example repo.'
+    scm:
+      - git:
+          wipe-workspace: true
+          skip-tag: true
+          url: '{github_scm}'
+          branches:
+            - '{branch}'
+          browser: githubweb
+          browser-url: '{github_location}'
+    triggers:
+      - pollscm: "* * * * *"
+    builders:
+      - shell:
+          | 
+            echo building the stuff
+            gradle build
+    publishers:
+      - violations:
+          findbugs:
+            pattern: build/reports/findbugs/*.xml
+      - junit:
+          results: build/test-results/*.xml
+      - trigger:
+          project: api-example-{branch}-integration
+          threshold: SUCCESS
+    properties:
+       - github:
+           url: '{github_location}'
+
+- job-template:
+    name: 'api-example-{branch}-integration'
+    description: 'Do not edit this job through the web! Check the git repo and read the README in /jenkins'
+    project-type: freestyle
+    defaults: global
+    disabled: false
+    quiet-period: 5
+    git_url: '{github_location}'
+    block-downstream: true
+    block-upstream: false
+    scm:
+      - workspace:
+          parent-job: api-example-{branch}-build
+    builders:
+      - shell: echo running integration tests successfully
+    publishers:
+      - violations:
+          findbugs:
+            pattern: build/reports/findbugs/*.xml
+      - junit:
+          results: build/test-results/*.xml
+      - trigger:
+          project: api-example-{branch}-deploy
+          threshold: SUCCESS
+
+- job-template:
+    name: 'api-example-{branch}-deploy'
+    project-type: freestyle
+    defaults: global
+    description: 'deploy this badboy'
+    disabled: false
+    quiet-period: 5
+    retry-count: 0
+    logrotate:
+      daysToKeep: 3
+      numToKeep: 20
+      artifactDaysToKeep: -1
+      artifactNumToKeep: -1
+    scm:
+      - workspace:
+          parent-job: api-example-{branch}-integration
+    builders:
+      - shell:
+          |
+            echo deploying job success! 
+    properties:
+       - github:
+          url: '{github_location}' 
+    publishers:
+      - archive:
+          artifacts: release/**.*
+
+
+- job-group:
+    name: release
+    branch:
+        - master
+       # - 3.0-prep
+       # - 3.0-shop
+    jobs: 
+        - api-example-{branch}-deploy
+        - api-example-{branch}-integration
+        - api-example-{branch}-build
+
+- project:
+    name: "api-example"
+    github_location: https://github.com/yveshwang/api-example
+    github_scm: https://github.com/yveshwang/api-example.git
+    jobs:
+        - release
