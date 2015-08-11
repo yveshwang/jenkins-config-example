@@ -1,0 +1,35 @@
+# Yves Hwang
+# 11.08.2015
+# example autoupdate script
+- job:
+    name: autoupdate
+    project-type: freestyle
+    defaults: global
+    description: ''
+    disabled: false
+    display-name: 'Jenkins Job Builder autoupdate'
+    quiet-period: 5
+    block-downstream: true
+    block-upstream: false
+    retry-count: 3
+    properties:
+       - github:
+           url: "https://github.com/yveshwang/jenkins-config-example/"
+    logrotate:
+      daysToKeep: 3
+      numToKeep: 20
+      artifactDaysToKeep: -1
+      artifactNumToKeep: -1
+    scm:
+      - git:
+          wipe-workspace: false
+          skip-tag: true
+          url: https://github.com/yveshwang/jenkins-config-example.git
+          browser: githubweb
+          browser-url: https://github.com/yveshwang/jenkins-config-example.git
+          branches:
+            - master
+    triggers:
+      - pollscm: "* * * * *"
+    builders:
+      - shell: find yaml -name *.yaml -print0 | xargs -0 -I config jenkins-jobs --conf jenkins-job-builder-localhost.ini -l TRACE update config
