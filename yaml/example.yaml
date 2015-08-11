@@ -5,7 +5,7 @@
     name: 'api-example-{branch}-build'
     project-type: freestyle
     defaults: global
-    description: 'Builds and runs unit tests. (Gradle build). Config in jenkins-config-example repo.'
+    description: 'example build'
     scm:
       - git:
           wipe-workspace: true
@@ -21,13 +21,7 @@
       - shell:
           | 
             echo building the stuff
-            gradle build
     publishers:
-      - violations:
-          findbugs:
-            pattern: build/reports/findbugs/*.xml
-      - junit:
-          results: build/test-results/*.xml
       - trigger:
           project: api-example-{branch}-integration
           threshold: SUCCESS
@@ -51,11 +45,6 @@
     builders:
       - shell: echo running integration tests successfully
     publishers:
-      - violations:
-          findbugs:
-            pattern: build/reports/findbugs/*.xml
-      - junit:
-          results: build/test-results/*.xml
       - trigger:
           project: api-example-{branch}-deploy
           threshold: SUCCESS
@@ -66,13 +55,6 @@
     defaults: global
     description: 'deploy this badboy'
     disabled: false
-    quiet-period: 5
-    retry-count: 0
-    logrotate:
-      daysToKeep: 3
-      numToKeep: 20
-      artifactDaysToKeep: -1
-      artifactNumToKeep: -1
     scm:
       - workspace:
           parent-job: api-example-{branch}-integration
@@ -86,7 +68,6 @@
     publishers:
       - archive:
           artifacts: release/**.*
-
 
 - job-group:
     name: release
