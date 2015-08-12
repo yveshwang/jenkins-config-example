@@ -77,7 +77,7 @@
     branch:
         - master
         - yves
-       # - 3.0-shop
+        - staging
     jobs: 
         - api-example-{branch}-deploy
         - api-example-{branch}-integration
